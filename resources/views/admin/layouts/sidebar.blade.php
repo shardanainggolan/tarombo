@@ -5,10 +5,10 @@
                 <img 
                     src="{{ asset('images/logo/logo.png') }}" 
                     style="width: 72%;"
-                    alt="Yayasan Scriptura Indonesia" 
+                    alt="Tarombo" 
                 />
             </span>
-            <span class="app-brand-text demo menu-text fw-bold">Scriptura</span>
+            <span class="app-brand-text demo menu-text fw-bold">Tarombo</span>
         </a>
 
         <a href="javascript:void(0);" class="layout-menu-toggle menu-link text-large ms-auto">
@@ -35,6 +35,45 @@
                 <li class="menu-item {{ session('activeMenu') == 'listClan' ? 'active' : '' }}">
                     <a href="{{ route('admin.clans.index') }}" class="menu-link">
                         <div data-i18n="Daftar Marga">Daftar Marga</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="menu-item {{ session('activeMenu') == 'individual' ? 'active' : '' }} {{ session('activeParentMenu') == 'individual' ? 'active open' : '' }}">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons ti ti-script"></i>
+                <div data-i18n="Orang">Orang</div>
+            </a>
+            <ul class="menu-sub">
+                <li class="menu-item {{ session('activeMenu') == 'listIndividual' ? 'active' : '' }}">
+                    <a href="{{ route('admin.individual.index') }}" class="menu-link">
+                        <div data-i18n="Daftar Orang">Daftar Orang</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="menu-item {{ session('activeMenu') == 'relationships' ? 'active' : '' }} {{ session('activeParentMenu') == 'relationships' ? 'active open' : '' }}">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons ti ti-script"></i>
+                <div data-i18n="Hubungan">Hubungan</div>
+            </a>
+            <ul class="menu-sub">
+                <li class="menu-item {{ session('activeMenu') == 'listRelationships' ? 'active' : '' }}">
+                    <a href="{{ route('admin.relationships.index') }}" class="menu-link">
+                        <div data-i18n="Daftar Hubungan">Daftar Hubungan</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+        <li class="menu-item {{ session('activeMenu') == 'marriages' ? 'active' : '' }} {{ session('activeParentMenu') == 'marriages' ? 'active open' : '' }}">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons ti ti-script"></i>
+                <div data-i18n="Pernikahan">Pernikahan</div>
+            </a>
+            <ul class="menu-sub">
+                <li class="menu-item {{ session('activeMenu') == 'listMarriages' ? 'active' : '' }}">
+                    <a href="{{ route('admin.marriages.index') }}" class="menu-link">
+                        <div data-i18n="Daftar Pernikahan">Daftar Pernikahan</div>
                     </a>
                 </li>
             </ul>

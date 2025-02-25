@@ -4,21 +4,23 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Individual;
 use App\Models\Clan;
+use App\Models\Marriage;
 
-class ClanController extends Controller
+class IndividualController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        session(['activeMenu' => 'listClans']);
-        session(['activeParentMenu' => 'clans']);
+        session(['activeMenu' => 'listIndividual']);
+        session(['activeParentMenu' => 'individual']);
         session(['activeSubParentMenu' => '']);
 
-        $clans = Clan::all();
-        return view('admin.pages.clans.index', compact('clans'));
+        $individuals = Individual::all();
+        return view('admin.pages.individual.index', compact('individuals'));
     }
 
     /**
@@ -26,7 +28,10 @@ class ClanController extends Controller
      */
     public function create()
     {
-        return view('admin.pages.clans.create');
+        $clans = Clan::all();
+        $marriages = Marriage::all();
+
+        return view('admin.pages.individual.create', compact('clans', 'marriages'));
     }
 
     /**
@@ -34,13 +39,13 @@ class ClanController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name'          => 'required|unique:clans',
-            'description'   => 'nullable'
-        ]);
+        // $request->validate([
+            
+        //     'description'   => 'nullable'
+        // ]);
 
-        Clan::create($request->all());
-        return redirect()->route('admin.clans.index')->with('success', 'Marga berhasil ditambahkan.');
+        Individual::create($request->all());
+        return redirect()->route('admin.individual.index')->with('success', 'Orang berhasil ditambahkan.');
     }
 
     /**
@@ -56,7 +61,7 @@ class ClanController extends Controller
      */
     public function edit(string $id)
     {
-        return view('clans.edit', compact('clan'));
+        return view('admin.pages.individual.edit', compact('clan'));
     }
 
     /**
@@ -70,7 +75,7 @@ class ClanController extends Controller
         ]);
 
         $clan->update($request->all());
-        return redirect()->route('clans.index')->with('success', 'Marga berhasil diperbarui.');
+        return redirect()->route('admin.individual.index')->with('success', 'Marga berhasil diperbarui.');
     }
 
     /**
@@ -79,6 +84,6 @@ class ClanController extends Controller
     public function destroy(string $id)
     {
         $clan->delete();
-        return redirect()->route('clans.index')->with('success', 'Marga berhasil dihapus.');
+        return redirect()->route('admin.individual.index')->with('success', 'Marga berhasil dihapus.');
     }
 }

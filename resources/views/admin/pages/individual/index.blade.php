@@ -1,6 +1,6 @@
 @extends('admin.layouts.index')
 
-@section('title', 'Daftar Marga - Tarombo')
+@section('title', 'Daftar Orang - Tarombo')
 
 @section('styles')
 <link rel="stylesheet" href="{{ asset('admin/css/datatables.bootstrap5.css') }}" />
@@ -16,16 +16,16 @@
         <div class="card-datatable table-responsive pt-0">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="head-label">
-                    <h5 class="card-title mb-0">Daftar Marga</h5>
+                    <h5 class="card-title mb-0">Daftar Orang</h5>
                 </div>
                 <div class="dt-action-buttons text-end pt-3 pt-md-0">
                     <div class="dt-buttons btn-group flex-wrap">
                         <div class="btn-group">
-                            <a href="{{ route('admin.clans.create') }}" class="btn btn-secondary create-new btn-primary waves-effect waves-light">
+                            <a href="{{ route('admin.individual.create') }}" class="btn btn-secondary create-new btn-primary waves-effect waves-light">
                                 <span>
                                     <i class="ti ti-plus me-sm-1"></i>
                                     <span class="d-none d-sm-inline-block">
-                                        Tambah Marga
+                                        Tambah Orang
                                     </span>
                                 </span>
                             </a>
@@ -36,14 +36,33 @@
             <table class="datatables table table-sm" style="width: 100%;">
                 <thead>
                     <tr>
+                        <th>Nama Depan</th>
+                        <th>Nama Belakang</th>
                         <th>Marga</th>
+                        <th>Jenis Kelamin</th>
+                        <th>Tanggal Lahir</th>
+                        <th>Status Hidup</th>
+                        <th class="text-center" style="width: 10%;" data-sortable="false">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($clans as $clan)
+                    @foreach($individuals as $individual)
                     <tr>
+                        <td>{{ $individual->first_name }}</td>
+                        <td>{{ $individual->last_name }}</td>
+                        <td>{{ $individual->clan->name }}</td>
+                        <td>{{ $individual->gender == 'male' ? 'Laki-laki' : 'Perempuan' }}</td>
+                        <td>{{ $individual->birth_date ? $individual->birth_date->format('d-m-Y') : '-' }}</td>
+                        <td>{{ $individual->is_alive ? 'Hidup' : 'Meninggal' }}</td>
                         <td class="text-center">
-                            {{ $clan->name }}
+                            <div class="tw-flex">
+                                <a href="{{ route('admin.individual.edit', $individual->id) }}">
+                                    <i class="text-primary ti ti-edit" style="font-size: 20px;"></i>
+                                </a>
+                                <a href="javascript:void(0);" id="{{ $individual->id }}" class="delete-record">
+                                    <i class="text-danger ti ti-trash" style="font-size: 20px;"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     @endforeach
@@ -89,7 +108,7 @@
                 if(res.isConfirmed) {
                     axios({
                         method: 'delete',
-                        url: '{{ route('admin.clans.destroy', '') }}/' + id,
+                        url: '{{ route('admin.individual.destroy', '') }}/' + id,
                         responseType: 'json'
                     })
                     .then(function (response) {
