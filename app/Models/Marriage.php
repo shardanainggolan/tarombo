@@ -7,25 +7,18 @@ use Illuminate\Database\Eloquent\Model;
 class Marriage extends Model
 {
     protected $fillable = [
-        'husband_id', 'wife_id', 'marriage_date', 'status'
+        'husband_id', 'wife_id', 'marriage_date', 'divorce_date',
     ];
 
-    protected $casts = [
-        'marriage_date' => 'date'
-    ];
-
+    // Relasi ke Suami
     public function husband()
     {
-        return $this->belongsTo(Individual::class, 'husband_id');
+        return $this->belongsTo(FamilyMember::class, 'husband_id');
     }
 
+    // Relasi ke Istri
     public function wife()
     {
-        return $this->belongsTo(Individual::class, 'wife_id');
-    }
-
-    public function individuals()
-    {
-        return $this->hasMany(Individual::class);
+        return $this->belongsTo(FamilyMember::class, 'wife_id');
     }
 }

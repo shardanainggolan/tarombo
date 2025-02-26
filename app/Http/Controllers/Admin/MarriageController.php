@@ -4,89 +4,81 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Individual;
-use App\Models\Clan;
 use App\Models\Marriage;
-use App\Models\Relationship;
+use App\Models\FamilyMember;
 
 class MarriageController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    // Menampilkan daftar pernikahan
     public function index()
     {
-        session(['activeMenu' => 'listMarriages']);
-        session(['activeParentMenu' => 'marriages']);
-        session(['activeSubParentMenu' => '']);
-
-        $marriages = Marriage::all();
+        $marriages = Marriage::with(['husband', 'wife'])->get(); // Mengambil data pernikahan dengan suami dan istri
         return view('admin.pages.marriages.index', compact('marriages'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
+    // Menampilkan form untuk menambah pernikahan
     public function create()
     {
-        $clans = Clan::all();
-        $marriages = Marriage::all();
-        $individuals = Individual::all();
-        $males = Individual::where('gender', 'male')->get();
-        $females = Individual::where('gender', 'female')->get();
-
-        return view('admin.pages.marriages.create', compact('males', 'females', 'individuals', 'clans', 'marriages'));
+        $familyMembers = FamilyMember::all(); // Mengambil semua anggota keluarga untuk memilih suami dan istri
+        return view('admin.pages.marriages.create', compact('familyMembers'));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+    // Menyimpan data pernikahan baru
     public function store(Request $request)
     {
-        // $request->validate([
-        //     'description'   => 'nullable'
-        // ]);
-
-        Marriage::create($request->all());
-        return redirect()->route('admin.marriages.index')->with('success', 'Pernikahan berhasil ditambahkan.');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        return view('admin.pages.marriages.edit', compact('clan'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
         $request->validate([
-            'name' => 'required|unique:clans,name,' . $clan->id,
-            'description' => 'nullable'
+            'husband_id' => 'required|exists:family_members,id',
+            'wife_id' => 'required|exists:family_members,id',
+            'marriage_date' => 'required|date',
+            'divorce_date' => 'nullable|date',
         ]);
 
-        $clan->update($request->all());
-        return redirect()->route('admin.marriages.index')->with('success', 'Marga berhasil diperbarui.');
+        Marriage::create([
+            'husband_id' => $request->husband_id,
+            'wife_id' => $request->wife_id,
+            'marriage_date' => $request->marriage_date,
+            'divorce_date' => $request->divorce_date,
+        ]);
+
+        return redirect()->route('admin.marriages.index')->with('success', 'Pernikahan berhasil ditambahkan');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
+    // Menampilkan form untuk mengedit data pernikahan
+    public function edit($id)
     {
-        $clan->delete();
-        return redirect()->route('admin.marriages.index')->with('success', 'Marga berhasil dihapus.');
+        $marriage = Marriage::findOrFail($id);
+        $familyMembers = FamilyMember::all(); // Mengambil semua anggota keluarga untuk memilih suami dan istri
+        return view('admin.pages.marriages.edit', compact('marriage', 'familyMembers'));
+    }
+
+    // Mengupdate data pernikahan
+    public function update(Request $request, $id)
+    {
+        $marriage = Marriage::findOrFail($id);
+
+        $request->validate([
+            'husband_id' => 'required|exists:family_members,id',
+            'wife_id' => 'required|exists:family_members,id',
+            'marriage_date' => 'required|date',
+            'divorce_date' => 'nullable|date',
+        ]);
+
+        $marriage->update([
+            'husband_id' => $request->husband_id,
+            'wife_id' => $request->wife_id,
+            'marriage_date' => $request->marriage_date,
+            'divorce_date' => $request->divorce_date,
+        ]);
+
+        return redirect()->route('admin.marriages.index')->with('success', 'Pernikahan berhasil diperbarui');
+    }
+
+    // Menghapus data pernikahan
+    public function destroy($id)
+    {
+        $marriage = Marriage::findOrFail($id);
+        $marriage->delete();
+
+        return redirect()->route('admin.marriages.index')->with('success', 'Pernikahan berhasil dihapus');
     }
 }

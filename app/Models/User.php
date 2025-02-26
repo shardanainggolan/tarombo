@@ -21,7 +21,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'individual_id',
+        'role',
     ];
 
     /**
@@ -47,8 +47,9 @@ class User extends Authenticatable
         ];
     }
 
-    public function individual()
+    // Menambahkan fungsi untuk mengelola role
+    public function isAdmin()
     {
-        return $this->belongsTo(Individual::class);
+        return $this->role === 'admin';
     }
 }

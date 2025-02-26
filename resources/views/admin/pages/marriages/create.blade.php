@@ -1,6 +1,6 @@
 @extends('admin.layouts.index')
 
-@section('title', 'Tambah Pernikahan - Tarombo')
+@section('title', 'Tambah Pernikahan - Scriptura')
 
 @section('styles')
 
@@ -16,38 +16,36 @@
             <form method="POST" action="{{ route('admin.marriages.store') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="mb-3">
-                    <label for="husband_id">Suami</label>
+                    <label for="husband_id" class="form-label">Suami</label>
                     <select name="husband_id" id="husband_id" class="form-control" required>
-                        @foreach ($males as $male)
-                            <option value="{{ $male->id }}">{{ $male->first_name }} {{ $male->last_name }}</option>
+                        <option value="">Pilih Suami</option>
+                        @foreach ($familyMembers as $familyMember)
+                            <option value="{{ $familyMember->id }}">{{ $familyMember->user->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label for="wife_id">Istri</label>
+                    <label for="wife_id" class="form-label">Istri</label>
                     <select name="wife_id" id="wife_id" class="form-control" required>
-                        @foreach ($females as $female)
-                            <option value="{{ $female->id }}">{{ $female->first_name }} {{ $female->last_name }}</option>
+                        <option value="">Pilih Istri</option>
+                        @foreach ($familyMembers as $familyMember)
+                            <option value="{{ $familyMember->id }}">{{ $familyMember->user->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label for="marriage_date">Tanggal Pernikahan</label>
-                    <input type="date" name="marriage_date" id="marriage_date" class="form-control" />
+                    <label for="marriage_date" class="form-label">Tanggal Pernikahan</label>
+                    <input type="date" class="form-control" name="marriage_date" id="marriage_date" required>
                 </div>
                 <div class="mb-3">
-                    <label for="status">Status Pernikahan</label>
-                    <select name="status" id="status" class="form-control" required>
-                        <option value="active">Aktif</option>
-                        <option value="divorced">Cerai</option>
-                        <option value="widowed">Duda/Janda</option>
-                    </select>
+                    <label for="divorce_date" class="form-label">Tanggal Perceraian (Opsional)</label>
+                    <input type="date" class="form-control" name="divorce_date" id="divorce_date">
                 </div>
                 <div class="tw-flex">
                     <button type="submit" class="btn btn-primary waves-effect waves-light">
                         Simpan
                     </button>
-                    <a href="{{ route('admin.relationships.index') }}">
+                    <a href="{{ route('admin.users.index') }}">
                         <button type="button" class="btn btn-danger waves-effect waves-light">
                             Kembali
                         </button>

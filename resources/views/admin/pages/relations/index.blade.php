@@ -1,6 +1,6 @@
 @extends('admin.layouts.index')
 
-@section('title', 'Daftar Pernikahan - Tarombo')
+@section('title', 'Daftar Hubungan - Tarombo')
 
 @section('styles')
 <link rel="stylesheet" href="{{ asset('admin/css/datatables.bootstrap5.css') }}" />
@@ -16,16 +16,16 @@
         <div class="card-datatable table-responsive pt-0">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="head-label">
-                    <h5 class="card-title mb-0">Daftar Pernikahan</h5>
+                    <h5 class="card-title mb-0">Daftar Hubungan</h5>
                 </div>
                 <div class="dt-action-buttons text-end pt-3 pt-md-0">
                     <div class="dt-buttons btn-group flex-wrap">
                         <div class="btn-group">
-                            <a href="{{ route('admin.marriages.create') }}" class="btn btn-secondary create-new btn-primary waves-effect waves-light">
+                            <a href="{{ route('admin.relations.create') }}" class="btn btn-secondary create-new btn-primary waves-effect waves-light">
                                 <span>
                                     <i class="ti ti-plus me-sm-1"></i>
                                     <span class="d-none d-sm-inline-block">
-                                        Tambah Pernikahan
+                                        Tambah Hubungan
                                     </span>
                                 </span>
                             </a>
@@ -36,26 +36,24 @@
             <table class="datatables table table-sm" style="width: 100%;">
                 <thead>
                     <tr>
-                        <th>Suami</th>
-                        <th>Istri</th>
-                        <th>Tanggal Pernikahan</th>
-                        <th>Tanggal Perceraian</th>
+                        <th>Nama</th>
+                        <th>Jenis Hubungan</th>
+                        <th>Deskripsi</th>
                         <th class="text-center" style="width: 10%;" data-sortable="false">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($marriages as $marriage)
+                    @foreach($relations as $relation)
                     <tr>
-                        <td>{{ $marriage->husband->user->name }}</td>
-                        <td>{{ $marriage->wife->user->name }}</td>
-                        <td>{{ $marriage->marriage_date }}</td>
-                        <td>{{ $marriage->divorce_date ?? '-' }}</td>
+                        <td>{{ $relation->user->user->name }}</td>
+                        <td>{{ $relation->relationType->relation_name }}</td>
+                        <td>{{ $relation->relation_description }}</td>
                         <td class="text-center">
                             <div class="tw-flex">
-                                <a href="{{ route('admin.marriages.edit', $marriage->id) }}">
+                                <a href="{{ route('admin.relations.edit', $relation->id) }}">
                                     <i class="text-primary ti ti-edit" style="font-size: 20px;"></i>
                                 </a>
-                                <a href="javascript:void(0);" id="{{ $marriage->id }}" class="delete-record">
+                                <a href="javascript:void(0);" id="{{ $relation->id }}" class="delete-record">
                                     <i class="text-danger ti ti-trash" style="font-size: 20px;"></i>
                                 </a>
                             </div>

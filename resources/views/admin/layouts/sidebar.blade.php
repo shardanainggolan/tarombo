@@ -26,54 +26,56 @@
                 <div data-i18n="Dashboard">Dashboard</div>
             </a>
         </li>
-        <li class="menu-item {{ session('activeMenu') == 'clans' ? 'active' : '' }} {{ session('activeParentMenu') == 'clan' ? 'active open' : '' }}">
+        <li class="menu-item {{ session('activeMenu') == 'users' ? 'active' : '' }} {{ session('activeParentMenu') == 'users' ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-script"></i>
-                <div data-i18n="Marga">Marga</div>
+                <div data-i18n="Users">Users</div>
             </a>
             <ul class="menu-sub">
-                <li class="menu-item {{ session('activeMenu') == 'listClan' ? 'active' : '' }}">
-                    <a href="{{ route('admin.clans.index') }}" class="menu-link">
-                        <div data-i18n="Daftar Marga">Daftar Marga</div>
+                <li class="menu-item {{ session('activeMenu') == 'listUsers' ? 'active' : '' }}">
+                    <a href="{{ route('admin.users.index') }}" class="menu-link">
+                        <div data-i18n="Daftar Users">Daftar Users</div>
                     </a>
                 </li>
             </ul>
         </li>
-        <li class="menu-item {{ session('activeMenu') == 'individual' ? 'active' : '' }} {{ session('activeParentMenu') == 'individual' ? 'active open' : '' }}">
+        <li class="menu-item {{ session('activeMenu') == 'users' ? 'active' : '' }} {{ session('activeParentMenu') == 'users' ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-script"></i>
-                <div data-i18n="Orang">Orang</div>
+                <div data-i18n="Keluarga">Keluarga</div>
             </a>
             <ul class="menu-sub">
-                <li class="menu-item {{ session('activeMenu') == 'listIndividual' ? 'active' : '' }}">
-                    <a href="{{ route('admin.individual.index') }}" class="menu-link">
-                        <div data-i18n="Daftar Orang">Daftar Orang</div>
+                <li class="menu-item {{ session('activeMenu') == 'listUsers' ? 'active' : '' }}">
+                    <a href="{{ route('admin.family_members.index') }}" class="menu-link">
+                        <div data-i18n="Daftar Keluarga">Daftar Keluarga</div>
                     </a>
                 </li>
             </ul>
         </li>
-        <li class="menu-item {{ session('activeMenu') == 'relationships' ? 'active' : '' }} {{ session('activeParentMenu') == 'relationships' ? 'active open' : '' }}">
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons ti ti-script"></i>
-                <div data-i18n="Hubungan">Hubungan</div>
-            </a>
-            <ul class="menu-sub">
-                <li class="menu-item {{ session('activeMenu') == 'listRelationships' ? 'active' : '' }}">
-                    <a href="{{ route('admin.relationships.index') }}" class="menu-link">
-                        <div data-i18n="Daftar Hubungan">Daftar Hubungan</div>
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li class="menu-item {{ session('activeMenu') == 'marriages' ? 'active' : '' }} {{ session('activeParentMenu') == 'marriages' ? 'active open' : '' }}">
+
+        <li class="menu-item {{ session('activeMenu') == 'users' ? 'active' : '' }} {{ session('activeParentMenu') == 'users' ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-script"></i>
                 <div data-i18n="Pernikahan">Pernikahan</div>
             </a>
             <ul class="menu-sub">
-                <li class="menu-item {{ session('activeMenu') == 'listMarriages' ? 'active' : '' }}">
+                <li class="menu-item {{ session('activeMenu') == 'listUsers' ? 'active' : '' }}">
                     <a href="{{ route('admin.marriages.index') }}" class="menu-link">
                         <div data-i18n="Daftar Pernikahan">Daftar Pernikahan</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+
+        <li class="menu-item {{ session('activeMenu') == 'users' ? 'active' : '' }} {{ session('activeParentMenu') == 'users' ? 'active open' : '' }}">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons ti ti-script"></i>
+                <div data-i18n="Hubungan ">Hubungan </div>
+            </a>
+            <ul class="menu-sub">
+                <li class="menu-item {{ session('activeMenu') == 'listUsers' ? 'active' : '' }}">
+                    <a href="{{ route('admin.relations.index') }}" class="menu-link">
+                        <div data-i18n="Daftar Hubungan ">Daftar Hubungan </div>
                     </a>
                 </li>
             </ul>
