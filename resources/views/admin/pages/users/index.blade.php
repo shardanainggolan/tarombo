@@ -38,7 +38,7 @@
                     <tr>
                         <th>Nama</th>
                         <th>Email</th>
-                        <th>Role</th>
+                        <th>Terhubung ke</th>
                         <th class="text-center" style="width: 10%;" data-sortable="false">Aksi</th>
                     </tr>
                 </thead>
@@ -47,15 +47,29 @@
                     <tr>
                         <td>{{ $user->name }}</td>
                         <td>{{ $user->email }}</td>
-                        <td>{{ $user->role }}</td>
+                        <td>
+                            @if($user->person)
+                            <span class="badge bg-success">
+                                {{ $user->person->user->name }} ({{ $user->person->marga }})
+                            </span>
+                            @else
+                            <span class="badge bg-secondary">Tidak terhubung</span>
+                            @endif
+                        </td>
                         <td class="text-center">
-                            <div class="tw-flex">
-                                <a href="{{ route('admin.users.edit', $user->id) }}">
-                                    <i class="text-primary ti ti-edit" style="font-size: 20px;"></i>
+                            <div class="tw-flex gap-2 justify-content-center">
+                                <a href="{{ route('admin.users.edit', $user) }}" 
+                                   class="text-primary">
+                                    <i class="ti ti-edit"></i>
                                 </a>
-                                <a href="javascript:void(0);" id="{{ $user->id }}" class="delete-record">
-                                    <i class="text-danger ti ti-trash" style="font-size: 20px;"></i>
-                                </a>
+                                <form action="{{ route('admin.users.destroy', $user) }}" 
+                                      method="POST">
+                                    @csrf @method('DELETE')
+                                    <button type="button" 
+                                            class="text-danger delete-record bg-transparent border-0">
+                                        <i class="ti ti-trash"></i>
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
@@ -102,7 +116,7 @@
                 if(res.isConfirmed) {
                     axios({
                         method: 'delete',
-                        url: '{{ route('admin.clans.destroy', '') }}/' + id,
+                        url: '{{ route('admin.users.destroy', '') }}/' + id,
                         responseType: 'json'
                     })
                     .then(function (response) {

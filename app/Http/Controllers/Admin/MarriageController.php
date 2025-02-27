@@ -5,80 +5,112 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Marriage;
-use App\Models\FamilyMember;
+use App\Models\Person;
 
 class MarriageController extends Controller
 {
-    // Menampilkan daftar pernikahan
     public function index()
     {
-        $marriages = Marriage::with(['husband', 'wife'])->get(); // Mengambil data pernikahan dengan suami dan istri
+        $marriages = Marriage::with(['husband.user', 'wife.user'])
+            ->latest()
+            ->get();
+
         return view('admin.pages.marriages.index', compact('marriages'));
     }
 
-    // Menampilkan form untuk menambah pernikahan
     public function create()
     {
-        $familyMembers = FamilyMember::all(); // Mengambil semua anggota keluarga untuk memilih suami dan istri
-        return view('admin.pages.marriages.create', compact('familyMembers'));
+        $males = Person::where('gender', 'male')->get();
+        $females = Person::where('gender', 'female')->get();
+
+        return view('admin.pages.marriages.create', compact('males', 'females'));
     }
 
-    // Menyimpan data pernikahan baru
     public function store(Request $request)
     {
-        $request->validate([
-            'husband_id' => 'required|exists:family_members,id',
-            'wife_id' => 'required|exists:family_members,id',
+        $data = $request->validate([
+            'husband_id' => 'required|exists:people,id',
+            'wife_id' => 'required|exists:people,id|different:husband_id',
             'marriage_date' => 'required|date',
-            'divorce_date' => 'nullable|date',
+            'is_active' => 'boolean'
         ]);
 
-        Marriage::create([
-            'husband_id' => $request->husband_id,
-            'wife_id' => $request->wife_id,
-            'marriage_date' => $request->marriage_date,
-            'divorce_date' => $request->divorce_date,
-        ]);
+        $husband = Person::find($data['husband_id']);
+        $wife = Person::find($data['wife_id']);
 
-        return redirect()->route('admin.marriages.index')->with('success', 'Pernikahan berhasil ditambahkan');
+        // Validasi marga
+        if ($husband->marga === $wife->marga) {
+            return back()->withErrors(['marga' => 'Pernikahan dalam marga yang sama dilarang!']);
+        }
+
+        // Non-aktifkan pernikahan sebelumnya jika ada
+        if ($request->is_active) {
+            Marriage::where('husband_id', $husband->id)
+                ->orWhere('wife_id', $wife->id)
+                ->update(['is_active' => false]);
+        }
+
+        Marriage::create($data);
+
+        return redirect()->route('admin.marriages.index')
+            ->with('success', 'Pernikahan berhasil ditambahkan');
     }
 
-    // Menampilkan form untuk mengedit data pernikahan
-    public function edit($id)
+    public function edit(Marriage $marriage)
     {
-        $marriage = Marriage::findOrFail($id);
-        $familyMembers = FamilyMember::all(); // Mengambil semua anggota keluarga untuk memilih suami dan istri
-        return view('admin.pages.marriages.edit', compact('marriage', 'familyMembers'));
+        $males = Person::where('gender', 'male')->get();
+        $females = Person::where('gender', 'female')->get();
+
+        return view('admin.pages.marriages.edit', compact(
+            'marriage',
+            'males',
+            'females'
+        ));
     }
 
-    // Mengupdate data pernikahan
-    public function update(Request $request, $id)
+    public function update(Request $request, Marriage $marriage)
     {
-        $marriage = Marriage::findOrFail($id);
-
-        $request->validate([
-            'husband_id' => 'required|exists:family_members,id',
-            'wife_id' => 'required|exists:family_members,id',
+        $data = $request->validate([
+            'husband_id' => 'required|exists:people,id',
+            'wife_id' => 'required|exists:people,id|different:husband_id',
             'marriage_date' => 'required|date',
-            'divorce_date' => 'nullable|date',
+            'divorce_date' => 'nullable|date|after:marriage_date',
+            'is_active' => 'boolean'
         ]);
 
-        $marriage->update([
-            'husband_id' => $request->husband_id,
-            'wife_id' => $request->wife_id,
-            'marriage_date' => $request->marriage_date,
-            'divorce_date' => $request->divorce_date,
-        ]);
+        // Validasi marga
+        $husband = Person::find($data['husband_id']);
+        $wife = Person::find($data['wife_id']);
+        if ($husband->marga === $wife->marga) {
+            return back()->withErrors(['marga' => 'Pernikahan dalam marga yang sama dilarang!']);
+        }
 
-        return redirect()->route('admin.marriages.index')->with('success', 'Pernikahan berhasil diperbarui');
+        // Update status aktif
+        if ($data['is_active']) {
+            Marriage::where('id', '!=', $marriage->id)
+                ->where(function($query) use ($data) {
+                    $query->where('husband_id', $data['husband_id'])
+                          ->orWhere('wife_id', $data['wife_id']);
+                })
+                ->update(['is_active' => false]);
+        }
+
+        $marriage->update($data);
+
+        return redirect()->route('admin.marriages.index')
+            ->with('success', 'Data pernikahan berhasil diperbarui');
     }
 
-    // Menghapus data pernikahan
-    public function destroy($id)
+    public function destroy(Marriage $marriage)
     {
-        $marriage = Marriage::findOrFail($id);
+        if ($marriage->children()->exists()) {
+            return back()->withErrors([
+                'message' => 'Tidak dapat menghapus pernikahan yang memiliki anak'
+            ]);
+        }
+
         $marriage->delete();
-
-        return redirect()->route('admin.marriages.index')->with('success', 'Pernikahan berhasil dihapus');
+        return redirect()->route('admin.marriages.index')
+            ->with('success', 'Pernikahan berhasil dihapus');
     }
 }

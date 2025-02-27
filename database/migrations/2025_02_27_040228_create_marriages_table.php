@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('marriages', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('husband_id')->constrained('family_members')->onDelete('cascade');
-            $table->foreignId('wife_id')->constrained('family_members')->onDelete('cascade');
-            $table->date('marriage_date');
+            $table->foreignId('husband_id')->constrained('people');
+            $table->foreignId('wife_id')->constrained('people');
+            $table->date('marriage_date')->nullable();
             $table->date('divorce_date')->nullable();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
         });
     }

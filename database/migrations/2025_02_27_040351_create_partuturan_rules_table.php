@@ -11,9 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('relation_types', function (Blueprint $table) {
+        Schema::create('partuturan_rules', function (Blueprint $table) {
             $table->id();
-            $table->string('relation_name');
+            $table->string('relationship_type'); // Contoh: 'father_brother', 'mother_sister'
+            $table->string('term'); // Contoh: 'tulang', 'namboru'
             $table->text('description')->nullable();
             $table->timestamps();
         });
@@ -24,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('relation_types');
+        Schema::dropIfExists('partuturan_rules');
     }
 };

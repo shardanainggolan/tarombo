@@ -54,6 +54,17 @@
                     </select>
                 </div>
                 <div class="mb-3">
+                    <label for="position_in_family" class="form-label">Posisi dalam Keluarga</label>
+                    <select name="position_in_family" id="position_in_family" class="form-control" required>
+                        <option value="son">Anak Laki-laki</option>
+                        <option value="daughter">Anak Perempuan</option>
+                        <option value="husband">Suami</option>
+                        <option value="wife">Istri</option>
+                        <option value="brother">Saudara Laki-laki</option>
+                        <option value="sister">Saudara Perempuan</option>
+                    </select>
+                </div>
+                <div class="mb-3">
                     <label for="birth_date" class="form-label">Tanggal Lahir</label>
                     <input type="date" class="form-control" name="birth_date" id="birth_date" required>
                 </div>
@@ -61,7 +72,7 @@
                     <button type="submit" class="btn btn-primary waves-effect waves-light">
                         Simpan
                     </button>
-                    <a href="{{ route('admin.users.index') }}">
+                    <a href="{{ route('admin.family_members.index') }}">
                         <button type="button" class="btn btn-danger waves-effect waves-light">
                             Kembali
                         </button>

@@ -52,4 +52,9 @@ class User extends Authenticatable
     {
         return $this->role === 'admin';
     }
+
+    public function person()
+    {
+        return $this->hasOne(Person::class);
+    }
 }

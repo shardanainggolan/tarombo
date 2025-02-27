@@ -1,6 +1,6 @@
 @extends('admin.layouts.index')
 
-@section('title', 'Daftar Pernikahan - Tarombo')
+@section('title', 'Daftar Anak - Tarombo')
 
 @section('styles')
 <link rel="stylesheet" href="{{ asset('admin/css/datatables.bootstrap5.css') }}" />
@@ -16,16 +16,16 @@
         <div class="card-datatable table-responsive pt-0">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="head-label">
-                    <h5 class="card-title mb-0">Daftar Pernikahan</h5>
+                    <h5 class="card-title mb-0">Daftar Anak</h5>
                 </div>
                 <div class="dt-action-buttons text-end pt-3 pt-md-0">
                     <div class="dt-buttons btn-group flex-wrap">
                         <div class="btn-group">
-                            <a href="{{ route('admin.marriages.create') }}" class="btn btn-secondary create-new btn-primary waves-effect waves-light">
+                            <a href="{{ route('admin.children.create') }}" class="btn btn-secondary create-new btn-primary waves-effect waves-light">
                                 <span>
                                     <i class="ti ti-plus me-sm-1"></i>
                                     <span class="d-none d-sm-inline-block">
-                                        Tambah Pernikahan
+                                        Tambah Anak
                                     </span>
                                 </span>
                             </a>
@@ -36,33 +36,37 @@
             <table class="datatables table table-sm" style="width: 100%;">
                 <thead>
                     <tr>
-                        <th>Suami</th>
-                        <th>Istri</th>
-                        <th>Tanggal Nikah</th>
-                        <th>Status</th>
+                        <th>Pernikahan</th>
+                        <th>Anak</th>
+                        <th>Urutan</th>
+                        <th>Marga</th>
                         <th class="text-center" style="width: 10%;" data-sortable="false">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($marriages as $marriage)
+                    @foreach($children as $child)
                     <tr>
-                        <td>{{ $marriage->husband->user->name }}</td>
-                        <td>{{ $marriage->wife->user->name }}</td>
-                        <td>{{ $marriage->marriage_date->format('d M Y') }}</td>
                         <td>
-                            @if($marriage->is_active)
-                            <span class="badge bg-success">Aktif</span>
-                            @else
-                            <span class="badge bg-secondary">Tidak Aktif</span>
+                            {{ $child->marriage->husband->user->name }} & 
+                            {{ $child->marriage->wife->user->name }}
+                        </td>
+                        <td>{{ $child->person->user->name }}</td>
+                        <td>{{ $child->display_order }}</td>
+                        <td>
+                            <span class="badge bg-primary">
+                                {{ $child->person->marga }}
+                            </span>
+                            @if($child->person->is_boru_line)
+                            <span class="badge bg-danger">Boru</span>
                             @endif
                         </td>
                         <td class="text-center">
                             <div class="tw-flex gap-2 justify-content-center">
-                                <a href="{{ route('admin.marriages.edit', $marriage) }}" 
+                                <a href="{{ route('admin.children.edit', $child) }}" 
                                    class="text-primary">
                                     <i class="ti ti-edit"></i>
                                 </a>
-                                <form action="{{ route('admin.marriages.destroy', $marriage) }}" 
+                                <form action="{{ route('admin.children.destroy', $child) }}" 
                                       method="POST">
                                     @csrf @method('DELETE')
                                     <button type="button" 

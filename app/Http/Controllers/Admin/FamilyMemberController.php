@@ -27,6 +27,7 @@ class FamilyMemberController extends Controller
     // Menyimpan anggota keluarga baru
     public function store(Request $request)
     {
+        // dd($request);
         $request->validate([
             'user_id' => 'required|exists:users,id',
             'marga' => 'required|string|max:255',

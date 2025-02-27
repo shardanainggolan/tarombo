@@ -1,6 +1,6 @@
 @extends('admin.layouts.index')
 
-@section('title', 'Daftar Pernikahan - Tarombo')
+@section('title', 'Daftar Anggota Keluarga - Tarombo')
 
 @section('styles')
 <link rel="stylesheet" href="{{ asset('admin/css/datatables.bootstrap5.css') }}" />
@@ -16,16 +16,16 @@
         <div class="card-datatable table-responsive pt-0">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div class="head-label">
-                    <h5 class="card-title mb-0">Daftar Pernikahan</h5>
+                    <h5 class="card-title mb-0">Daftar Anggota Keluarga</h5>
                 </div>
                 <div class="dt-action-buttons text-end pt-3 pt-md-0">
                     <div class="dt-buttons btn-group flex-wrap">
                         <div class="btn-group">
-                            <a href="{{ route('admin.marriages.create') }}" class="btn btn-secondary create-new btn-primary waves-effect waves-light">
+                            <a href="{{ route('admin.people.create') }}" class="btn btn-secondary create-new btn-primary waves-effect waves-light">
                                 <span>
                                     <i class="ti ti-plus me-sm-1"></i>
                                     <span class="d-none d-sm-inline-block">
-                                        Tambah Pernikahan
+                                        Tambah Anggota Keluarga
                                     </span>
                                 </span>
                             </a>
@@ -36,40 +36,35 @@
             <table class="datatables table table-sm" style="width: 100%;">
                 <thead>
                     <tr>
-                        <th>Suami</th>
-                        <th>Istri</th>
-                        <th>Tanggal Nikah</th>
-                        <th>Status</th>
+                        <th>Nama</th>
+                        <th>Marga</th>
+                        <th>Ayah</th>
+                        <th>Ibu</th>
+                        <th>Pasangan</th>
                         <th class="text-center" style="width: 10%;" data-sortable="false">Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($marriages as $marriage)
+                    @foreach($persons as $person)
                     <tr>
-                        <td>{{ $marriage->husband->user->name }}</td>
-                        <td>{{ $marriage->wife->user->name }}</td>
-                        <td>{{ $marriage->marriage_date->format('d M Y') }}</td>
+                        <td>{{ $person->user->name }}</td>
                         <td>
-                            @if($marriage->is_active)
-                            <span class="badge bg-success">Aktif</span>
-                            @else
-                            <span class="badge bg-secondary">Tidak Aktif</span>
+                            <span class="badge bg-primary">{{ $person->marga }}</span>
+                            @if($person->is_boru_line)
+                            <span class="badge bg-danger">Boru</span>
                             @endif
                         </td>
+                        <td>{{ $person->father?->user->name ?? '-' }}</td>
+                        <td>{{ $person->mother?->user->name ?? '-' }}</td>
+                        <td>{{ $person->current_spouse?->user->name ?? '-' }}</td>
                         <td class="text-center">
-                            <div class="tw-flex gap-2 justify-content-center">
-                                <a href="{{ route('admin.marriages.edit', $marriage) }}" 
-                                   class="text-primary">
-                                    <i class="ti ti-edit"></i>
+                            <div class="tw-flex">
+                                <a href="{{ route('admin.people.edit', $person->id) }}">
+                                    <i class="text-primary ti ti-edit" style="font-size: 20px;"></i>
                                 </a>
-                                <form action="{{ route('admin.marriages.destroy', $marriage) }}" 
-                                      method="POST">
-                                    @csrf @method('DELETE')
-                                    <button type="button" 
-                                            class="text-danger delete-record bg-transparent border-0">
-                                        <i class="ti ti-trash"></i>
-                                    </button>
-                                </form>
+                                <a href="javascript:void(0);" id="{{ $person->id }}" class="delete-record">
+                                    <i class="text-danger ti ti-trash" style="font-size: 20px;"></i>
+                                </a>
                             </div>
                         </td>
                     </tr>
@@ -116,7 +111,7 @@
                 if(res.isConfirmed) {
                     axios({
                         method: 'delete',
-                        url: '{{ route('admin.children.destroy', '') }}/' + id,
+                        url: '{{ route('admin.people.destroy', '') }}/' + id,
                         responseType: 'json'
                     })
                     .then(function (response) {

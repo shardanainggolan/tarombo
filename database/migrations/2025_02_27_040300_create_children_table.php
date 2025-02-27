@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('relations', function (Blueprint $table) {
+        Schema::create('children', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('relation_type_id')->constrained('relation_types')->onDelete('cascade');
-            $table->text('relation_description');
+            $table->foreignId('marriage_id')->constrained('marriages');
+            $table->foreignId('child_id')->constrained('people');
+            $table->integer('display_order')->default(0); // Untuk mengatur urutan tampilan (anak laki-laki pertama)
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('relations');
+        Schema::dropIfExists('children');
     }
 };

@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('user_login_logs', function (Blueprint $table) {
+        Schema::create('user_relationships', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->timestamp('login_time');
-            $table->timestamp('logout_time')->nullable();
+            $table->foreignId('user_id')->constrained('users');
+            $table->foreignId('relative_id')->constrained('people');
+            $table->foreignId('partuturan_rule_id')->constrained('partuturan_rules');
             $table->timestamps();
         });
     }
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('user_login_logs');
+        Schema::dropIfExists('user_relationships');
     }
 };

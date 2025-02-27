@@ -26,34 +26,36 @@
                 <div data-i18n="Dashboard">Dashboard</div>
             </a>
         </li>
+
         <li class="menu-item {{ session('activeMenu') == 'users' ? 'active' : '' }} {{ session('activeParentMenu') == 'users' ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-script"></i>
-                <div data-i18n="Users">Users</div>
+                <div data-i18n="User">User</div>
             </a>
             <ul class="menu-sub">
                 <li class="menu-item {{ session('activeMenu') == 'listUsers' ? 'active' : '' }}">
                     <a href="{{ route('admin.users.index') }}" class="menu-link">
-                        <div data-i18n="Daftar Users">Daftar Users</div>
-                    </a>
-                </li>
-            </ul>
-        </li>
-        <li class="menu-item {{ session('activeMenu') == 'users' ? 'active' : '' }} {{ session('activeParentMenu') == 'users' ? 'active open' : '' }}">
-            <a href="javascript:void(0);" class="menu-link menu-toggle">
-                <i class="menu-icon tf-icons ti ti-script"></i>
-                <div data-i18n="Keluarga">Keluarga</div>
-            </a>
-            <ul class="menu-sub">
-                <li class="menu-item {{ session('activeMenu') == 'listUsers' ? 'active' : '' }}">
-                    <a href="{{ route('admin.family_members.index') }}" class="menu-link">
-                        <div data-i18n="Daftar Keluarga">Daftar Keluarga</div>
+                        <div data-i18n="Daftar User">Daftar User</div>
                     </a>
                 </li>
             </ul>
         </li>
 
-        <li class="menu-item {{ session('activeMenu') == 'users' ? 'active' : '' }} {{ session('activeParentMenu') == 'users' ? 'active open' : '' }}">
+        <li class="menu-item {{ session('activeMenu') == 'person' ? 'active' : '' }} {{ session('activeParentMenu') == 'person' ? 'active open' : '' }}">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons ti ti-script"></i>
+                <div data-i18n="Individu">Individu</div>
+            </a>
+            <ul class="menu-sub">
+                <li class="menu-item {{ session('activeMenu') == 'listUsers' ? 'active' : '' }}">
+                    <a href="{{ route('admin.people.index') }}" class="menu-link">
+                        <div data-i18n="Daftar Individu">Daftar Individu</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+
+        <li class="menu-item {{ session('activeMenu') == 'marriage' ? 'active' : '' }} {{ session('activeParentMenu') == 'marriage' ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-script"></i>
                 <div data-i18n="Pernikahan">Pernikahan</div>
@@ -67,15 +69,15 @@
             </ul>
         </li>
 
-        <li class="menu-item {{ session('activeMenu') == 'users' ? 'active' : '' }} {{ session('activeParentMenu') == 'users' ? 'active open' : '' }}">
+        <li class="menu-item {{ session('activeMenu') == 'children' ? 'active' : '' }} {{ session('activeParentMenu') == 'children' ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-script"></i>
-                <div data-i18n="Hubungan ">Hubungan </div>
+                <div data-i18n="Anak">Anak</div>
             </a>
             <ul class="menu-sub">
                 <li class="menu-item {{ session('activeMenu') == 'listUsers' ? 'active' : '' }}">
-                    <a href="{{ route('admin.relations.index') }}" class="menu-link">
-                        <div data-i18n="Daftar Hubungan ">Daftar Hubungan </div>
+                    <a href="{{ route('admin.children.index') }}" class="menu-link">
+                        <div data-i18n="Daftar Anak">Daftar Anak</div>
                     </a>
                 </li>
             </ul>
