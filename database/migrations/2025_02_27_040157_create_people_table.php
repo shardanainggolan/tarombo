@@ -21,9 +21,19 @@ return new class extends Migration
             $table->date('death_date')->nullable();
             $table->boolean('is_boru_line')->default(false);
             $table->text('bio')->nullable();
+            $table->json('position')->nullable()->comment('
+                {
+                    "birth_order": 3, 
+                    "gender_order": 1,
+                    "marriage_order": 2
+                }
+            ');
             $table->foreignId('father_id')->nullable()->constrained('people');
             $table->foreignId('mother_id')->nullable()->constrained('people');
             $table->timestamps();
+
+            $table->index(['marga', 'father_id', 'mother_id']);
+            $table->index(['gender', 'is_boru_line']);
         });
     }
 
