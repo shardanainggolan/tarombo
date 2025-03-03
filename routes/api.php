@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\FamilyTreeController;
 use App\Http\Controllers\Api\PartuturanController;
 use App\Http\Controllers\Api\PersonController;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\TreeManipulationController;
 
 Route::prefix('api')->name('api.')->group(function () {
     Route::post('login', [AuthController::class, 'login']);
@@ -27,6 +28,10 @@ Route::prefix('api')->name('api.')->group(function () {
         Route::get('family-tree', [FamilyTreeController::class, 'getTree']);
         Route::get('family-graph', [FamilyTreeController::class, 'getGraph']);
         Route::get('family-group', [FamilyTreeController::class, 'getFamilyGroup']);
+        
+        // Tree manipulation
+        Route::post('tree/add-child', [TreeManipulationController::class, 'addChild']);
+        Route::post('tree/reorder-children', [TreeManipulationController::class, 'reorderChildren']);
         
         // Partuturan data
         Route::get('partuturan/relationship', [PartuturanController::class, 'getRelationship']);

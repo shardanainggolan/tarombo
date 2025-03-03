@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
 
 class AuthController extends Controller
 {
@@ -31,15 +32,13 @@ class AuthController extends Controller
             ], 422);
         }
 
-        if (!Auth::attempt($request->only('email', 'password'))) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid login credentials'
-            ], 401);
-        }
-
         $user = User::where('email', $request->email)->firstOrFail();
+
+        
         $token = $user->createToken('auth_token')->plainTextToken;
+
+        // dd($token);
+        
 
         return response()->json([
             'success' => true,
