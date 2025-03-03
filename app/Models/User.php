@@ -6,6 +6,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class User extends Authenticatable
 {
@@ -21,7 +22,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
+        'person_id',
     ];
 
     /**
@@ -47,14 +48,8 @@ class User extends Authenticatable
         ];
     }
 
-    // Menambahkan fungsi untuk mengelola role
-    public function isAdmin()
+    public function person(): BelongsTo
     {
-        return $this->role === 'admin';
-    }
-
-    public function person()
-    {
-        return $this->hasOne(Person::class);
+        return $this->belongsTo(Person::class);
     }
 }

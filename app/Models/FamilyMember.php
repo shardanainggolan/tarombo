@@ -3,46 +3,23 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FamilyMember extends Model
 {
     protected $fillable = [
-        'user_id', 'marga', 'father_id', 'mother_id', 'spouse_id', 'gender', 'position_in_family', 'marriage_count', 'birth_date',
+        'family_group_id',
+        'person_id',
+        'display_order',
     ];
 
-    // Relasi ke User
-    public function user()
+    public function familyGroup(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(FamilyGroup::class);
     }
 
-    // Relasi ke Ayah
-    public function father()
+    public function person(): BelongsTo
     {
-        return $this->belongsTo(FamilyMember::class, 'father_id');
-    }
-
-    // Relasi ke Ibu
-    public function mother()
-    {
-        return $this->belongsTo(FamilyMember::class, 'mother_id');
-    }
-
-    // Relasi ke Pasangan
-    public function spouse()
-    {
-        return $this->belongsTo(FamilyMember::class, 'spouse_id');
-    }
-
-    // Relasi ke Anak-anak
-    public function children()
-    {
-        return $this->hasMany(FamilyMember::class, 'father_id');
-    }
-
-    // Relasi ke Saudaranya
-    public function siblings()
-    {
-        return $this->hasMany(FamilyMember::class, 'mother_id');
+        return $this->belongsTo(Person::class);
     }
 }

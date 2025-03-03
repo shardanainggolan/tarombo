@@ -3,51 +3,132 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Person;
+use App\Models\FamilyGroup;
+use App\Services\PartuturanService;
+use App\Services\FamilyTreeService;
 use Illuminate\Http\Request;
-use App\Models\Individual;
+use Illuminate\Support\Facades\Auth;
 
 class FamilyTreeController extends Controller
 {
-    public function getTree($individualId)
+    protected $familyTreeService;
+    protected $partuturanService;
+    
+    public function __construct(FamilyTreeService $familyTreeService, PartuturanService $partuturanService)
     {
-        $individual = Individual::with(['relationships.relatedIndividual', 'marriages.husband', 'marriages.wife'])->findOrFail($individualId);
-
-        // Struktur data untuk pohon keluarga
-        $treeData = $this->buildTree($individual);
-
-        return response()->json($treeData);
+        $this->familyTreeService = $familyTreeService;
+        $this->partuturanService = $partuturanService;
     }
-
-    private function buildTree($individual)
+    
+    /**
+     * Get family tree data centered on the authenticated user or specified person
+     */
+    public function getTree(Request $request)
     {
-        $node = [
-            'name' => $individual->first_name . ' ' . $individual->last_name,
-            'gender' => $individual->gender,
-            'id' => $individual->id,
-            'children' => [],
-            'spouses' => [],
-        ];
-
-        // Tambahkan pasangan (spouses)
-        foreach ($individual->marriages as $marriage) {
-            $spouse = $individual->gender === 'male' ? $marriage->wife : $marriage->husband;
-            $node['spouses'][] = [
-                'name' => $spouse->first_name . ' ' . $spouse->last_name,
-                'gender' => $spouse->gender,
-                'id' => $spouse->id,
-            ];
+        $request->validate([
+            'person_id' => 'nullable|exists:people,id',
+            'generations_up' => 'nullable|integer|min:0|max:5',
+            'generations_down' => 'nullable|integer|min:0|max:5',
+            'include_marriages' => 'nullable|boolean',
+            'include_siblings' => 'nullable|boolean',
+        ]);
+        
+        // Default to authenticated user if no person_id provided
+        $personId = $request->input('person_id', Auth::user()->person_id);
+        $person = Person::findOrFail($personId);
+        
+        // Set parameters with sensible defaults
+        $generationsUp = $request->input('generations_up', 2);
+        $generationsDown = $request->input('generations_down', 2);
+        $includeMarriages = $request->input('include_marriages', true);
+        $includeSiblings = $request->input('include_siblings', true);
+        
+        // Generate tree data
+        $treeData = $this->familyTreeService->generateTree(
+            $person,
+            $generationsUp,
+            $generationsDown,
+            $includeMarriages,
+            $includeSiblings
+        );
+        
+        return response()->json([
+            'success' => true,
+            'data' => $treeData,
+            'meta' => [
+                'central_person_id' => $person->id,
+                'generations_up' => $generationsUp,
+                'generations_down' => $generationsDown,
+                'include_marriages' => $includeMarriages,
+                'include_siblings' => $includeSiblings,
+            ]
+        ]);
+    }
+    
+    /**
+     * Get a simplified graph representation for visualization
+     */
+    public function getGraph(Request $request)
+    {
+        $request->validate([
+            'person_id' => 'nullable|exists:people,id',
+            'generations_up' => 'nullable|integer|min:0|max:3',
+            'generations_down' => 'nullable|integer|min:0|max:3',
+        ]);
+        
+        $personId = $request->input('person_id', Auth::user()->person_id);
+        $person = Person::findOrFail($personId);
+        
+        $generationsUp = $request->input('generations_up', 1);
+        $generationsDown = $request->input('generations_down', 1);
+        
+        $graphData = $this->familyTreeService->generateGraph(
+            $person,
+            $generationsUp,
+            $generationsDown
+        );
+        
+        return response()->json([
+            'success' => true,
+            'data' => $graphData,
+            'meta' => [
+                'central_person_id' => $person->id,
+                'generations_up' => $generationsUp,
+                'generations_down' => $generationsDown,
+            ]
+        ]);
+    }
+    
+    /**
+     * Get family group structure (parents and children)
+     */
+    public function getFamilyGroup(Request $request)
+    {
+        $request->validate([
+            'person_id' => 'required|exists:people,id',
+        ]);
+        
+        $person = Person::findOrFail($request->person_id);
+        
+        // Get family groups based on person gender
+        if ($person->gender === 'male') {
+            $familyGroups = FamilyGroup::with(['mother', 'members.person'])
+                ->where('father_id', $person->id)
+                ->get();
+        } else {
+            $familyGroups = FamilyGroup::with(['father', 'members.person'])
+                ->where('mother_id', $person->id)
+                ->get();
         }
-
-        // Tambahkan anak-anak
-        $children = $individual->relationships()
-            ->whereIn('relationship_type', ['son', 'daughter'])
-            ->with('relatedIndividual')
-            ->get();
-
-        foreach ($children as $child) {
-            $node['children'][] = $this->buildTree($child->relatedIndividual);
-        }
-
-        return $node;
+        
+        $formattedGroups = $familyGroups->map(function ($group) {
+            return $this->familyTreeService->formatFamilyGroup($group);
+        });
+        
+        return response()->json([
+            'success' => true,
+            'data' => $formattedGroups,
+        ]);
     }
 }

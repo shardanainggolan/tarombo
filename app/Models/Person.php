@@ -4,183 +4,159 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Person extends Model
 {
     protected $table = 'people';
-    
+
     protected $fillable = [
-        'user_id',
-        'father_id',
-        'mother_id',
-        'marga',
+        'first_name',
+        'last_name',
+        'marga_id',
         'gender',
         'birth_date',
         'death_date',
-        'is_boru_line'
+        'photo_url',
+        'notes',
     ];
 
     protected $casts = [
         'birth_date' => 'date',
         'death_date' => 'date',
-        'is_boru_line' => 'boolean',
-        'position' => 'array'
     ];
 
-    // Relations
-    public function user(): BelongsTo
+    // User account relationship
+    public function user(): HasOne
     {
-        return $this->belongsTo(User::class);
+        return $this->hasOne(User::class);
     }
 
-    public function father(): BelongsTo
+    // Marga relationship
+    public function marga(): BelongsTo
     {
-        return $this->belongsTo(Person::class, 'father_id');
+        return $this->belongsTo(Marga::class);
     }
 
-    public function mother(): BelongsTo
+    // Marriage relationships
+    public function marriagesAsHusband(): HasMany
     {
-        return $this->belongsTo(Person::class, 'mother_id');
+        return $this->hasMany(Marriage::class, 'husband_id');
     }
 
-    public function marriages(): HasMany
+    public function marriagesAsWife(): HasMany
     {
-        return $this->hasMany(Marriage::class, 'husband_id')
-            ->orWhere('wife_id', $this->id);
+        return $this->hasMany(Marriage::class, 'wife_id');
     }
 
-    public function children(): HasMany
+    // Current spouse relationships with convenience methods
+    public function currentSpouses()
     {
-        return $this->hasMany(Child::class, 'child_id');
+        $spouses = collect();
+
+        if ($this->gender === 'male') {
+            $spouses = $this->marriagesAsHusband()
+                ->where('is_current', true)
+                ->with('wife')
+                ->get()
+                ->pluck('wife');
+        } else {
+            $spouses = $this->marriagesAsWife()
+                ->where('is_current', true)
+                ->with('husband')
+                ->get()
+                ->pluck('husband');
+        }
+
+        return $spouses;
     }
 
-    // Helper
-    public function getCurrentSpouseAttribute()
+    // Parent-child relationships
+    public function parents(): BelongsToMany
     {
-        return $this->marriages()
-            ->where('is_active', true)
-            ->first()
-            ?->spouse();
+        return $this->belongsToMany(
+            Person::class,
+            'parent_child',
+            'child_id',
+            'parent_id'
+        )->withPivot('marriage_id', 'is_biological', 'birth_order');
     }
 
-    public function getMargaAncestors()
+    public function children(): BelongsToMany
     {
-        $ancestors = collect();
-        $current = $this;
+        return $this->belongsToMany(
+            Person::class,
+            'parent_child',
+            'parent_id',
+            'child_id'
+        )->withPivot('marriage_id', 'is_biological', 'birth_order');
+    }
+
+    // Family group relationships
+    public function familyGroupsAsFather(): HasMany
+    {
+        return $this->hasMany(FamilyGroup::class, 'father_id');
+    }
+
+    public function familyGroupsAsMother(): HasMany
+    {
+        return $this->hasMany(FamilyGroup::class, 'mother_id');
+    }
+
+    public function familyMemberships(): HasMany
+    {
+        return $this->hasMany(FamilyMember::class);
+    }
+
+    // Relationship identification methods
+    public function relationshipsFrom(): HasMany
+    {
+        return $this->hasMany(CachedRelationship::class, 'from_person_id');
+    }
+
+    public function relationshipsTo(): HasMany
+    {
+        return $this->hasMany(CachedRelationship::class, 'to_person_id');
+    }
+
+    // Helper methods for tree traversal
+    public function father()
+    {
+        return $this->parents()->where('gender', 'male')->first();
+    }
+
+    public function mother()
+    {
+        return $this->parents()->where('gender', 'female')->first();
+    }
+
+    public function siblings()
+    {
+        $parents = $this->parents()->pluck('id');
         
-        while ($current->father) {
-            $ancestors->push($current->father);
-            $current = $current->father;
+        if ($parents->isEmpty()) {
+            return collect();
         }
         
-        return $ancestors;
+        return Person::whereHas('parents', function ($query) use ($parents) {
+            $query->whereIn('parent_id', $parents);
+        })->where('id', '!=', $this->id)->get();
     }
 
-    public function getMargaGenerationDistance(Person $other)
+    // Partuturan lookup methods
+    public function getPartuturanTermFor(Person $relative)
     {
-        $myAncestors = $this->getMargaAncestors();
-        $otherAncestors = $other->getMargaAncestors();
-        
-        $common = $myAncestors->intersect($otherAncestors)->first();
-        
-        return [
-            'generation' => $myAncestors->search($common) - $otherAncestors->search($common),
-            'is_direct' => !!$common
-        ];
-    }
-
-    public function getFamilyTreeAttribute()
-    {
-        return [
-            'ancestors' => $this->getAncestors(),
-            'descendants' => $this->getDescendants(),
-            'siblings' => $this->getFullSiblings(),
-            'inlaws' => $this->getInLaws()
-        ];
-    }
-
-    public function getAncestors($maxDepth = 5)
-    {
-        return $this->traverseFamily('parents', $maxDepth);
-    }
-
-    public function getDescendants($maxDepth = 3)
-    {
-        return $this->traverseFamily('children', $maxDepth);
-    }
-
-    private function traverseFamily($direction, $maxDepth, $currentDepth = 0, $results = [])
-    {
-        if ($currentDepth >= $maxDepth) return $results;
-
-        $relation = $this->{$direction};
-        foreach ($relation as $relative) {
-            $results[] = [
-                'person' => $relative,
-                'depth' => $currentDepth,
-                'path' => $direction
-            ];
-            $results = $relative->traverseFamily(
-                $direction, 
-                $maxDepth, 
-                $currentDepth + 1, 
-                $results
-            );
-        }
-        return $results;
-    }
-
-    public function getMargaDistance(Person $other)
-    {
-        $myLine = $this->getAncestorsLine();
-        $otherLine = $other->getAncestorsLine();
-        
-        $commonAncestor = $myLine->intersect($otherLine)->first();
-        
-        return [
-            'distance' => $myLine->search($commonAncestor) - $otherLine->search($commonAncestor),
-            'is_same_line' => !is_null($commonAncestor)
-        ];
-    }
-
-    public function getHierarchyAttribute()
-    {
-        return [
-            'lineage' => $this->getLineage(),
-            'generation' => $this->getGenerationLevel(),
-            'marga_path' => $this->getMargaPath(),
-            'sibling_position' => $this->getSiblingPosition()
-        ];
-    }
-
-    private function getLineage()
-    {
-        $lineage = [];
-        $current = $this;
-        
-        while($current->father) {
-            array_unshift($lineage, [
-                'id' => $current->father_id,
-                'marga' => $current->father->marga,
-                'gender' => 'male'
-            ]);
-            $current = $current->father;
+        $cachedRelationship = CachedRelationship::where('from_person_id', $this->id)
+            ->where('to_person_id', $relative->id)
+            ->first();
+            
+        if ($cachedRelationship) {
+            return $cachedRelationship->partuturanTerm;
         }
         
-        return $lineage;
-    }
-
-    private function getGenerationLevel()
-    {
-        $level = 0;
-        $current = $this;
-        
-        while($current->father) {
-            $level++;
-            $current = $current->father;
-        }
-        
-        return $level;
+        // If relationship not cached, calculate it (would be implemented in a service)
+        return null;
     }
 }

@@ -1,15 +1,11 @@
 @extends('admin.layouts.index')
-
 @section('title', 'Daftar Pernikahan - Tarombo')
-
 @section('styles')
 <link rel="stylesheet" href="{{ asset('admin/css/datatables.bootstrap5.css') }}" />
 <link rel="stylesheet" href="{{ asset('admin/css/responsive.bootstrap5.css') }}" />
 <link rel="stylesheet" href="{{ asset('admin/css/buttons.bootstrap5.css') }}" />
 <link rel="stylesheet" href="{{ asset('admin/css/sweetalert2.css') }}" />
-<link rel="stylesheet" href="{{ asset('css/fancybox.css') }}" />
 @endsection
-
 @section('content')
 <div class="container-xxl flex-grow-1 container-p-y">
     <div class="card">
@@ -36,72 +32,82 @@
             <table class="datatables table table-sm" style="width: 100%;">
                 <thead>
                     <tr>
+                        <th>No</th>
                         <th>Suami</th>
                         <th>Istri</th>
-                        <th>Tanggal Nikah</th>
+                        <th>Tanggal Pernikahan</th>
                         <th>Status</th>
-                        <th class="text-center" style="width: 10%;" data-sortable="false">Aksi</th>
+                        <th>Aksi</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($marriages as $marriage)
-                    <tr>
-                        <td>{{ $marriage->husband->user->name }}</td>
-                        <td>{{ $marriage->wife->user->name }}</td>
-                        <td>{{ $marriage->marriage_date->format('d M Y') }}</td>
-                        <td>
-                            @if($marriage->is_active)
-                            <span class="badge bg-success">Aktif</span>
-                            @else
-                            <span class="badge bg-secondary">Tidak Aktif</span>
-                            @endif
-                        </td>
-                        <td class="text-center">
-                            <div class="tw-flex gap-2 justify-content-center">
-                                <a href="{{ route('admin.marriages.edit', $marriage) }}" 
-                                   class="text-primary">
-                                    <i class="ti ti-edit"></i>
-                                </a>
-                                <form action="{{ route('admin.marriages.destroy', $marriage) }}" 
-                                      method="POST">
-                                    @csrf @method('DELETE')
-                                    <button type="button" 
-                                            class="text-danger delete-record bg-transparent border-0">
-                                        <i class="ti ti-trash"></i>
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
-                    </tr>
-                    @endforeach
                 </tbody>
             </table>
         </div>
     </div>
 </div>
 @endsection
-
 @push('scripts')
 <script src="{{ asset('admin/js/datatables-bootstrap5.js') }}"></script>
 <script src="{{ asset('admin/js/sweetalert2.js') }}"></script>
 <script src="{{ asset('js/axios.min.js') }}"></script>
-<script src="{{ asset('js/fancybox.umd.js') }}"></script>
-
 <script>
     $(document).ready(function () {
         $('.datatables').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: "{{ route('admin.marriages.index') }}",
+            columns: [
+                {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
+                {data: 'husband_name', name: 'husband_name'},
+                {data: 'wife_name', name: 'wife_name'},
+                {data: 'marriage_date', name: 'marriage_date'},
+                {data: 'status', name: 'status'},
+                {data: 'action', name: 'action', orderable: false, searchable: false},
+            ],
+            dom: '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
+                '<"col-sm-12 col-lg-4 d-flex justify-content-center justify-content-lg-start" l>' +
+                '<"col-sm-12 col-lg-8 ps-xl-75 ps-0"<"dt-action-buttons d-flex align-items-center justify-content-center justify-content-lg-end flex-lg-nowrap flex-wrap"<"me-1"f>B>>' +
+                '>t' +
+                '<"d-flex justify-content-between mx-2 row mb-1"' +
+                '<"col-sm-12 col-md-6"i>' +
+                '<"col-sm-12 col-md-6"p>' +
+                '>',
+            buttons: [
+                {
+                    extend: 'collection',
+                    className: 'btn btn-label-secondary dropdown-toggle me-2',
+                    text: '<i class="ti ti-download me-sm-1"></i> <span class="d-none d-sm-inline-block">Export</span>',
+                    buttons: [
+                        {
+                            extend: 'excel',
+                            text: '<i class="ti ti-file-spreadsheet me-1"></i>Excel',
+                            className: 'dropdown-item',
+                            exportOptions: { columns: [0, 1, 2, 3, 4] }
+                        },
+                        {
+                            extend: 'pdf',
+                            text: '<i class="ti ti-file-description me-1"></i>PDF',
+                            className: 'dropdown-item',
+                            exportOptions: { columns: [0, 1, 2, 3, 4] }
+                        },
+                        {
+                            extend: 'print',
+                            text: '<i class="ti ti-printer me-1"></i>Print',
+                            className: 'dropdown-item',
+                            exportOptions: { columns: [0, 1, 2, 3, 4] }
+                        }
+                    ]
+                }
+            ],
             order: []
         });
-
-        Fancybox.bind("[data-fancybox]", {
-            
-        });
-
+        
         $('.datatables').on('click', '.delete-record', function() {
             const id = $(this).attr('id')
-
             Swal.fire({
                 title: "Apakah Anda yakin menghapus data ini?",
+                text: "Data yang dihapus tidak dapat dikembalikan",
                 icon: "warning",
                 showCancelButton: !0,
                 confirmButtonText: "Ya, hapus!",
@@ -116,23 +122,37 @@
                 if(res.isConfirmed) {
                     axios({
                         method: 'delete',
-                        url: '{{ route('admin.children.destroy', '') }}/' + id,
+                        url: '{{ route('admin.marriages.destroy', '') }}/' + id,
                         responseType: 'json'
                     })
                     .then(function (response) {
                         const data = response.data
-
                         Swal.fire({
                             icon: "success",
                             title: data.message,
                             customClass: {
                                 confirmButton: "btn btn-success waves-effect waves-light"
                             },
-                            timer: 3500
+                            timer: 3000
                         })
                         .then(res => {
                             window.location.reload()
                         })
+                    })
+                    .catch(function (error) {
+                        let errorMsg = 'Terjadi kesalahan sistem';
+                        if (error.response && error.response.data && error.response.data.message) {
+                            errorMsg = error.response.data.message;
+                        }
+                        
+                        Swal.fire({
+                            icon: "error",
+                            title: "Gagal Menghapus",
+                            text: errorMsg,
+                            customClass: {
+                                confirmButton: "btn btn-danger waves-effect waves-light"
+                            }
+                        });
                     });
                 }
             })
