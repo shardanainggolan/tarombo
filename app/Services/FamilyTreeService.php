@@ -192,7 +192,7 @@ class FamilyTreeService
             $spouse = $parent->gender === 'male' ? $marriage->wife : $marriage->husband;
             
             // Skip if this is the child's other parent
-            if ($child->parents()->where('id', $spouse->id)->exists()) {
+            if ($child->parents()->where('people.id', $spouse->id)->exists()) {
                 continue;
             }
             
@@ -288,7 +288,7 @@ class FamilyTreeService
     private function processSiblings($person, &$nodes, &$relationships, &$processedIds)
     {
         // Get parent IDs
-        $parentIds = $person->parents()->pluck('id')->toArray();
+        $parentIds = $person->parents()->pluck('people.id')->toArray();
         
         if (empty($parentIds)) {
             return;
@@ -298,7 +298,7 @@ class FamilyTreeService
         $siblings = Person::whereHas('parents', function($query) use ($parentIds) {
                 $query->whereIn('parent_id', $parentIds);
             })
-            ->where('id', '!=', $person->id)
+            ->where('people.id', '!=', $person->id)
             ->with('marga')
             ->get();
         
@@ -310,7 +310,7 @@ class FamilyTreeService
             }
             
             // Find common parents
-            $siblingParentIds = $sibling->parents()->pluck('id')->toArray();
+            $siblingParentIds = $sibling->parents()->pluck('people.id')->toArray();
             $commonParentIds = array_intersect($parentIds, $siblingParentIds);
             
             foreach ($commonParentIds as $parentId) {

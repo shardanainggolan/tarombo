@@ -28,8 +28,8 @@ class FamilyTreeController extends Controller
     {
         $request->validate([
             'person_id' => 'nullable|exists:people,id',
-            'generations_up' => 'nullable|integer|min:0|max:5',
-            'generations_down' => 'nullable|integer|min:0|max:5',
+            'generations_up' => 'nullable|integer|min:0|max:10', // Increased max
+            'generations_down' => 'nullable|integer|min:0|max:10', // Increased max
             'include_marriages' => 'nullable|boolean',
             'include_siblings' => 'nullable|boolean',
         ]);
@@ -39,8 +39,8 @@ class FamilyTreeController extends Controller
         $person = Person::findOrFail($personId);
         
         // Set parameters with sensible defaults
-        $generationsUp = $request->input('generations_up', 2);
-        $generationsDown = $request->input('generations_down', 2);
+        $generationsUp = $request->input('generations_up', 5);     // Increased default
+        $generationsDown = $request->input('generations_down', 5); // Increased default
         $includeMarriages = $request->input('include_marriages', true);
         $includeSiblings = $request->input('include_siblings', true);
         
@@ -73,8 +73,8 @@ class FamilyTreeController extends Controller
     {
         $request->validate([
             'person_id' => 'nullable|exists:people,id',
-            'generations_up' => 'nullable|integer|min:0|max:3',
-            'generations_down' => 'nullable|integer|min:0|max:3',
+            'generations_up' => 'nullable|integer|min:0|max:10',
+            'generations_down' => 'nullable|integer|min:0|max:10',
         ]);
         
         $personId = $request->input('person_id', Auth::user()->person_id);

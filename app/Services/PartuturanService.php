@@ -22,6 +22,8 @@ class PartuturanService
             ->where('to_person_id', $toPerson->id)
             ->with(['partuturanTerm', 'relationshipPattern'])
             ->first();
+
+        // dd($cachedRelationship);
             
         if ($cachedRelationship) {
             return [
@@ -34,6 +36,8 @@ class PartuturanService
         
         // Calculate relationship path
         $relationshipPath = $this->calculateRelationshipPath($fromPerson, $toPerson);
+
+        // dd($relationshipPath);
         
         if (!$relationshipPath) {
             return [
@@ -46,6 +50,8 @@ class PartuturanService
         
         // Find matching pattern
         $pattern = RelationshipPattern::where('pattern', $relationshipPath)->first();
+
+        // dd($pattern);
         
         if (!$pattern) {
             return [
@@ -217,8 +223,8 @@ class PartuturanService
     public function isItoRelationship(Person $ego, Person $relative)
     {
         // Check if they have shared parents (siblings)
-        $egoParentIds = $ego->parents()->pluck('id')->toArray();
-        $relativeParentIds = $relative->parents()->pluck('id')->toArray();
+        $egoParentIds = $ego->parents()->pluck('people.id')->toArray();
+        $relativeParentIds = $relative->parents()->pluck('people.id')->toArray();
         
         $sharedParents = array_intersect($egoParentIds, $relativeParentIds);
         if (empty($sharedParents)) {
@@ -263,7 +269,7 @@ class PartuturanService
      */
     private function isDirectParent(Person $personA, Person $personB)
     {
-        return $personA->parents()->where('id', $personB->id)->exists();
+        return $personA->parents()->where('people.id', $personB->id)->exists();
     }
     
     /**
@@ -271,7 +277,7 @@ class PartuturanService
      */
     private function isDirectChild(Person $personA, Person $personB)
     {
-        return $personB->parents()->where('id', $personA->id)->exists();
+        return $personB->parents()->where('people.id', $personA->id)->exists();
     }
     
     /**
@@ -279,8 +285,8 @@ class PartuturanService
      */
     private function areSiblings(Person $personA, Person $personB)
     {
-        $personAParentIds = $personA->parents()->pluck('id')->toArray();
-        $personBParentIds = $personB->parents()->pluck('id')->toArray();
+        $personAParentIds = $personA->parents()->pluck('people.id')->toArray();
+        $personBParentIds = $personB->parents()->pluck('people.id')->toArray();
         
         return !empty(array_intersect($personAParentIds, $personBParentIds));
     }
@@ -291,8 +297,8 @@ class PartuturanService
     private function isOlder(Person $personA, Person $personB)
     {
         // Check if they share parents
-        $personAParentIds = $personA->parents()->pluck('id')->toArray();
-        $personBParentIds = $personB->parents()->pluck('id')->toArray();
+        $personAParentIds = $personA->parents()->pluck('people.id')->toArray();
+        $personBParentIds = $personB->parents()->pluck('people.id')->toArray();
         $sharedParentIds = array_intersect($personAParentIds, $personBParentIds);
         
         if (empty($sharedParentIds)) {
@@ -353,14 +359,14 @@ class PartuturanService
     private function getParentSiblingPath(Person $fromPerson, Person $toPerson)
     {
         // Get person's parents
-        $parentIds = $fromPerson->parents()->pluck('id')->toArray();
+        $parentIds = $fromPerson->parents()->pluck('people.id')->toArray();
         
         foreach ($parentIds as $parentId) {
             $parent = Person::find($parentId);
             
             // Check if target person is a sibling of this parent
-            $parentParentIds = $parent->parents()->pluck('id')->toArray();
-            $toPersonParentIds = $toPerson->parents()->pluck('id')->toArray();
+            $parentParentIds = $parent->parents()->pluck('people.id')->toArray();
+            $toPersonParentIds = $toPerson->parents()->pluck('people.id')->toArray();
             
             if (!empty(array_intersect($parentParentIds, $toPersonParentIds))) {
                 // Target is parent's sibling
@@ -380,17 +386,17 @@ class PartuturanService
     private function getSiblingsChildPath(Person $fromPerson, Person $toPerson)
     {
         // Get person's siblings
-        $fromPersonParentIds = $fromPerson->parents()->pluck('id')->toArray();
+        $fromPersonParentIds = $fromPerson->parents()->pluck('people.id')->toArray();
         
         $siblings = Person::whereHas('parents', function($query) use ($fromPersonParentIds) {
                 $query->whereIn('parent_id', $fromPersonParentIds);
             })
-            ->where('id', '!=', $fromPerson->id)
+            ->where('people.id', '!=', $fromPerson->id)
             ->get();
         
         foreach ($siblings as $sibling) {
             // Check if target person is a child of this sibling
-            if ($toPerson->parents()->where('id', $sibling->id)->exists()) {
+            if ($toPerson->parents()->where('people.id', $sibling->id)->exists()) {
                 // Target is sibling's child
                 $prefix = $sibling->gender === 'male' ? 'brother' : 'sister';
                 $suffix = $toPerson->gender === 'male' ? 'son' : 'daughter';
@@ -415,17 +421,17 @@ class PartuturanService
         
         foreach ($fromPersonParents as $parent) {
             // Get parent's siblings
-            $parentParentIds = $parent->parents()->pluck('id')->toArray();
+            $parentParentIds = $parent->parents()->pluck('people.id')->toArray();
             
             $parentSiblings = Person::whereHas('parents', function($query) use ($parentParentIds) {
                     $query->whereIn('parent_id', $parentParentIds);
                 })
-                ->where('id', '!=', $parent->id)
+                ->where('people.id', '!=', $parent->id)
                 ->get();
             
             foreach ($parentSiblings as $parentSibling) {
                 // Check if target person is a child of parent's sibling
-                if ($toPerson->parents()->where('id', $parentSibling->id)->exists()) {
+                if ($toPerson->parents()->where('people.id', $parentSibling->id)->exists()) {
                     // Target is a first cousin
                     $parentPrefix = $parent->gender === 'male' ? 'father' : 'mother';
                     $siblingType = $parentSibling->gender === 'male' ? 'brother' : 'sister';
@@ -462,7 +468,7 @@ class PartuturanService
         }
         
         foreach ($spouses as $spouse) {
-            if ($spouse->parents()->where('id', $toPerson->id)->exists()) {
+            if ($spouse->parents()->where('people.id', $toPerson->id)->exists()) {
                 // Target is spouse's parent
                 return 'spouse.' . ($toPerson->gender === 'male' ? 'father' : 'mother');
             }
@@ -470,8 +476,8 @@ class PartuturanService
         
         // Spouse's sibling (brother/sister-in-law)
         foreach ($spouses as $spouse) {
-            $spouseParentIds = $spouse->parents()->pluck('id')->toArray();
-            $toPersonParentIds = $toPerson->parents()->pluck('id')->toArray();
+            $spouseParentIds = $spouse->parents()->pluck('people.id')->toArray();
+            $toPersonParentIds = $toPerson->parents()->pluck('people.id')->toArray();
             
             if (!empty(array_intersect($spouseParentIds, $toPersonParentIds)) && $toPerson->id !== $spouse->id) {
                 // Target is spouse's sibling

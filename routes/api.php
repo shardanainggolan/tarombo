@@ -14,6 +14,8 @@ Route::prefix('api')->name('api.')->group(function () {
     Route::get('margas', [PersonController::class, 'getMargas']);
     Route::get('partuturan/directory', [PartuturanController::class, 'getTermsDirectory']);
 
+    Route::get('partuturan/relationship', [PartuturanController::class, 'getRelationship']);
+
     // Protected routes
     Route::middleware('auth:sanctum')->group(function () {
         // User profile
@@ -34,7 +36,7 @@ Route::prefix('api')->name('api.')->group(function () {
         Route::post('tree/reorder-children', [TreeManipulationController::class, 'reorderChildren']);
         
         // Partuturan data
-        Route::get('partuturan/relationship', [PartuturanController::class, 'getRelationship']);
+        // Route::get('partuturan/relationship', [PartuturanController::class, 'getRelationship']);
         Route::get('partuturan/all-relationships', [PartuturanController::class, 'getAllRelationships']);
     });
 });
