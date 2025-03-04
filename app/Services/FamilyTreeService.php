@@ -277,7 +277,7 @@ class FamilyTreeService
             
             // Add child's spouse if we're at the first or second generation
             if ($generations >= $initialGenerations - 1) {
-                $this->processSpouses($child, $nodes, $relationships, $processedIds);
+                $this->processMarriages($child, $nodes, $relationships, $processedIds);
             }
         }
     }
