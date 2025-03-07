@@ -27,6 +27,25 @@
             </a>
         </li>
 
+        <li class="menu-item {{ session('activeMenu') == 'users' ? 'active' : '' }} {{ session('activeParentMenu') == 'users' ? 'active open' : '' }}">
+            <a href="javascript:void(0);" class="menu-link menu-toggle">
+                <i class="menu-icon tf-icons ti ti-users"></i>
+                <div data-i18n="Pengguna">Pengguna</div>
+            </a>
+            <ul class="menu-sub">
+                <li class="menu-item {{ session('activeMenu') == 'listUsers' ? 'active' : '' }}">
+                    <a href="{{ route('admin.users.index') }}" class="menu-link">
+                        <div data-i18n="Daftar Pengguna">Daftar Pengguna</div>
+                    </a>
+                </li>
+                <li class="menu-item {{ session('activeMenu') == 'createUser' ? 'active' : '' }}">
+                    <a href="{{ route('admin.users.create') }}" class="menu-link">
+                        <div data-i18n="Tambah Pengguna">Tambah Pengguna</div>
+                    </a>
+                </li>
+            </ul>
+        </li>
+
         <li class="menu-item {{ session('activeMenu') == 'margas' ? 'active' : '' }} {{ session('activeParentMenu') == 'margas' ? 'active open' : '' }}">
             <a href="javascript:void(0);" class="menu-link menu-toggle">
                 <i class="menu-icon tf-icons ti ti-script"></i>

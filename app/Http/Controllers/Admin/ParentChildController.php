@@ -82,7 +82,7 @@ class ParentChildController extends Controller
                 'child_id' => $childId,
                 'marriage_id' => $request->marriage_id,
                 'is_biological' => $request->is_biological,
-                'birth_order' => $request->birth_order + $currentChildCount
+                'birth_order' => $request->birth_order // Use directly 
             ]);
             
             // If parent is male, also add to appropriate family group

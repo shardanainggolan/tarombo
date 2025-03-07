@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\MargaController;
 use App\Http\Controllers\Admin\PersonController;
 use App\Http\Controllers\Admin\ParentChildController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Admin\RelationshipPatternController;
 Route::middleware('auth')->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
+    Route::resource('users', UserController::class);
     Route::resource('margas', MargaController::class);
     Route::resource('people', PersonController::class);
 
