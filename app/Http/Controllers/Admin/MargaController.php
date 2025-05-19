@@ -5,37 +5,18 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Marga;
 use Illuminate\Http\Request;
-use Yajra\DataTables\Facades\DataTables;
 
 class MargaController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        if ($request->ajax()) {
-            $data = Marga::latest();
-            return DataTables::of($data)
-                ->addIndexColumn()
-                ->addColumn('action', function ($row) {
-                    $actionBtn = '
-                        <div class="d-flex align-items-center">
-                            <a href="' . route('admin.margas.edit', $row->id) . '" class="btn btn-icon btn-label-info waves-effect me-2">
-                                <i class="ti ti-pencil"></i>
-                            </a>
-                            <button type="button" id="' . $row->id . '" class="delete-record btn btn-icon btn-label-danger waves-effect">
-                                <i class="ti ti-trash"></i>
-                            </button>
-                        </div>
-                    ';
-                    return $actionBtn;
-                })
-                ->rawColumns(['action'])
-                ->make(true);
-        }
-        
-        return view('admin.pages.margas.index');
+        // Logic to display a list of margas
+        $margas = Marga::paginate(10); // Example: Paginate results
+        return view('admin.pages.margas.index', compact('margas'));
+        // return response()->json($margas); // Placeholder for now
     }
 
     /**
@@ -44,6 +25,7 @@ class MargaController extends Controller
     public function create()
     {
         return view('admin.pages.margas.create');
+        // return response()->json(['message' => 'Show form to create marga']); // Placeholder
     }
 
     /**
@@ -51,15 +33,24 @@ class MargaController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255|unique:margas,name',
-            'description' => 'nullable|string'
+        $validatedData = $request->validate([
+            'name' => 'required|string|unique:margas|max:255',
+            'description' => 'nullable|string',
+            'origin_story_link' => 'nullable|url|max:255',
         ]);
 
-        Marga::create($request->all());
+        $marga = Marga::create($validatedData);
+        return redirect()->route('admin.margas.index')->with('success', 'Marga created successfully.');
+        // return response()->json($marga, 201); // Placeholder
+    }
 
-        return redirect()->route('admin.margas.index')
-            ->with('success', 'Marga berhasil ditambahkan');
+    /**
+     * Display the specified resource.
+     */
+    public function show(Marga $marga)
+    {
+        return view('admin.pages.margas.show', compact('marga'));
+        // return response()->json($marga); // Placeholder
     }
 
     /**
@@ -68,6 +59,7 @@ class MargaController extends Controller
     public function edit(Marga $marga)
     {
         return view('admin.pages.margas.edit', compact('marga'));
+        // return response()->json($marga); // Placeholder
     }
 
     /**
@@ -75,15 +67,15 @@ class MargaController extends Controller
      */
     public function update(Request $request, Marga $marga)
     {
-        $request->validate([
+        $validatedData = $request->validate([
             'name' => 'required|string|max:255|unique:margas,name,' . $marga->id,
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
+            'origin_story_link' => 'nullable|url|max:255',
         ]);
 
-        $marga->update($request->all());
-
-        return redirect()->route('admin.margas.index')
-            ->with('success', 'Marga berhasil diperbarui');
+        $marga->update($validatedData);
+        return redirect()->route('admin.margas.index')->with('success', 'Marga updated successfully.');
+        // return response()->json($marga); // Placeholder
     }
 
     /**
@@ -91,17 +83,9 @@ class MargaController extends Controller
      */
     public function destroy(Marga $marga)
     {
-        try {
-            $marga->delete();
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Marga berhasil dihapus'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Gagal menghapus marga. ' . $e->getMessage()
-            ], 422);
-        }
+        $marga->delete();
+        return redirect()->route('admin.margas.index')->with('success', 'Marga deleted successfully.');
+        // return response()->json(null, 204); // Placeholder
     }
 }
+

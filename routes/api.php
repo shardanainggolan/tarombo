@@ -27,9 +27,14 @@ Route::prefix('api')->name('api.')->group(function () {
         Route::get('people/search', [PersonController::class, 'search']);
         
         // Family tree data
-        Route::get('family-tree', [FamilyTreeController::class, 'getTree']);
-        Route::get('family-graph', [FamilyTreeController::class, 'getGraph']);
-        Route::get('family-group', [FamilyTreeController::class, 'getFamilyGroup']);
+        // Family Tree API Routes
+        Route::get('/family-tree/{familyId}', [FamilyTreeController::class, 'getFamilyTree']);
+        Route::get('/family-tree/{familyId}/perspective/{memberId}', [FamilyTreeController::class, 'getFamilyTreeWithSapaan']);
+        Route::get('/sapaan/{fromId}/{toId}', [FamilyTreeController::class, 'getSapaan']);
+        Route::get('/sapaan/{memberId}/all', [FamilyTreeController::class, 'getAllSapaan']);
+        // Route::get('family-tree', [FamilyTreeController::class, 'getTree']);
+        // Route::get('family-graph', [FamilyTreeController::class, 'getGraph']);
+        // Route::get('family-group', [FamilyTreeController::class, 'getFamilyGroup']);
         
         // Tree manipulation
         Route::post('tree/add-child', [TreeManipulationController::class, 'addChild']);

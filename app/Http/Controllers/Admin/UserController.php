@@ -4,61 +4,23 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use App\Models\Person;
+use App\Models\Family;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
-use Yajra\DataTables\Facades\DataTables;
+use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        // Set active menu state
-        session(['activeMenu' => 'listUsers']);
-        session(['activeParentMenu' => 'users']);
-        session(['activeSubParentMenu' => '']);
-        if ($request->ajax()) {
-            $data = User::with('person.marga')->latest();
-            
-            return DataTables::of($data)
-                ->addIndexColumn()
-                ->addColumn('name', function ($row) {
-                    return $row->name;
-                })
-                ->addColumn('email', function ($row) {
-                    return $row->email;
-                })
-                ->addColumn('person_info', function ($row) {
-                    if ($row->person) {
-                        return '<span class="badge bg-success">' . 
-                            $row->person->first_name . ' ' . $row->person->last_name . 
-                            ' (' . $row->person->marga->name . ')' .
-                            '</span>';
-                    }
-                    return '<span class="badge bg-secondary">Tidak terhubung</span>';
-                })
-                ->addColumn('action', function ($row) {
-                    $actionBtn = '
-                        <div class="d-flex align-items-center">
-                            <a href="' . route('admin.users.edit', $row->id) . '" class="btn btn-icon btn-label-info waves-effect me-2">
-                                <i class="ti ti-pencil"></i>
-                            </a>
-                            <button type="button" id="' . $row->id . '" class="delete-record btn btn-icon btn-label-danger waves-effect">
-                                <i class="ti ti-trash"></i>
-                            </button>
-                        </div>
-                    ';
-                    return $actionBtn;
-                })
-                ->rawColumns(['action', 'person_info'])
-                ->make(true);
-        }
-        
-        return view('admin.pages.users.index');
+        // Typically, only admins should see all users.
+        // Add authorization logic here if needed.
+        $users = User::with("currentFamily")->paginate(15);
+        return view("admin.pages.users.index", compact("users"));
+        // return response()->json($users); // Placeholder
     }
 
     /**
@@ -66,14 +28,9 @@ class UserController extends Controller
      */
     public function create()
     {
-        // Set active menu state
-        session(['activeMenu' => 'createUser']);
-        session(['activeParentMenu' => 'users']);
-        session(['activeSubParentMenu' => '']);
-        // Get people who aren't already linked to a user
-        $availablePeople = Person::whereDoesntHave('user')->orderBy('first_name')->get();
-        
-        return view('admin.pages.users.create', compact('availablePeople'));
+        $families = Family::all(); // For selecting current_family_id
+        return view("admin.pages.users.create", compact("families"));
+        // return response()->json(["message" => "Show form to create user", "families" => $families]); // Placeholder
     }
 
     /**
@@ -81,31 +38,28 @@ class UserController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-            'person_id' => 'nullable|exists:people,id',
+        $validatedData = $request->validate([
+            "name" => "required|string|max:255",
+            "email" => "required|string|email|max:255|unique:users",
+            "password" => "required|string|min:8|confirmed",
+            "current_family_id" => "nullable|exists:families,id",
         ]);
 
-        // Check if the person is already linked to a user
-        if ($request->has('person_id') && $request->person_id) {
-            $existingUser = User::where('person_id', $request->person_id)->first();
-            if ($existingUser) {
-                return back()->withErrors(['person_id' => 'Orang ini sudah terhubung dengan pengguna lain.'])->withInput();
-            }
-        }
+        $validatedData["password"] = Hash::make($validatedData["password"]);
+        $user = User::create($validatedData);
 
-        // Create the user
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-            'person_id' => $request->person_id,
-        ]);
+        return redirect()->route("admin.users.index")->with("success", "User created successfully.");
+        // return response()->json($user, 201); // Placeholder
+    }
 
-        return redirect()->route('admin.users.index')
-            ->with('success', 'Pengguna berhasil ditambahkan');
+    /**
+     * Display the specified resource.
+     */
+    public function show(User $user)
+    {
+        $user->load(["families", "currentFamily", "familyMemberProfile"]);
+        return view("admin.pages.users.show", compact("user"));
+        // return response()->json($user); // Placeholder
     }
 
     /**
@@ -113,15 +67,9 @@ class UserController extends Controller
      */
     public function edit(User $user)
     {
-        // Get people who aren't already linked to a user, or are linked to this user
-        $availablePeople = Person::where(function($query) use ($user) {
-                $query->whereDoesntHave('user')
-                      ->orWhere('id', $user->person_id);
-            })
-            ->orderBy('first_name')
-            ->get();
-        
-        return view('admin.pages.users.edit', compact('user', 'availablePeople'));
+        $families = Family::all();
+        return view("admin.pages.users.edit", compact("user", "families"));
+        // return response()->json(["user" => $user, "families" => $families]); // Placeholder
     }
 
     /**
@@ -129,46 +77,22 @@ class UserController extends Controller
      */
     public function update(Request $request, User $user)
     {
-        $rules = [
-            'name' => 'required|string|max:255',
-            'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'person_id' => 'nullable|exists:people,id',
-        ];
+        $validatedData = $request->validate([
+            "name" => "required|string|max:255",
+            "email" => ["required", "string", "email", "max:255", Rule::unique("users")->ignore($user->id)],
+            "password" => "nullable|string|min:8|confirmed",
+            "current_family_id" => "nullable|exists:families,id",
+        ]);
 
-        // Only validate password if it's provided
-        if ($request->filled('password')) {
-            $rules['password'] = 'required|string|min:8|confirmed';
+        if (!empty($validatedData["password"])) {
+            $validatedData["password"] = Hash::make($validatedData["password"]);
+        } else {
+            unset($validatedData["password"]); // Don't update password if not provided
         }
 
-        $request->validate($rules);
-
-        // Check if the person is already linked to a different user
-        if ($request->has('person_id') && $request->person_id) {
-            $existingUser = User::where('person_id', $request->person_id)
-                ->where('id', '!=', $user->id)
-                ->first();
-                
-            if ($existingUser) {
-                return back()->withErrors(['person_id' => 'Orang ini sudah terhubung dengan pengguna lain.'])->withInput();
-            }
-        }
-
-        // Update user data
-        $userData = [
-            'name' => $request->name,
-            'email' => $request->email,
-            'person_id' => $request->person_id,
-        ];
-
-        // Only update password if provided
-        if ($request->filled('password')) {
-            $userData['password'] = Hash::make($request->password);
-        }
-
-        $user->update($userData);
-
-        return redirect()->route('admin.users.index')
-            ->with('success', 'Pengguna berhasil diperbarui');
+        $user->update($validatedData);
+        return redirect()->route("admin.users.index")->with("success", "User updated successfully.");
+        // return response()->json($user); // Placeholder
     }
 
     /**
@@ -176,18 +100,17 @@ class UserController extends Controller
      */
     public function destroy(User $user)
     {
-        try {
-            $user->delete();
-            
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Pengguna berhasil dihapus'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'Gagal menghapus pengguna. ' . $e->getMessage()
-            ], 422);
+        // Add logic to handle user deletion, e.g., reassigning families or deleting them based on policy.
+        // For now, simple delete.
+        // Be careful with deleting users, especially if they own critical data.
+        if ($user->id === Auth::id()) {
+            return redirect()->route("admin.users.index")->with("error", "You cannot delete your own account.");
+            // return response()->json(["message" => "Cannot delete own account"], 403); // Placeholder
         }
+
+        $user->delete();
+        return redirect()->route("admin.users.index")->with("success", "User deleted successfully.");
+        // return response()->json(null, 204); // Placeholder
     }
 }
+

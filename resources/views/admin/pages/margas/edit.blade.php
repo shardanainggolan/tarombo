@@ -7,44 +7,41 @@
 @endsection
 
 @section('content')
-<div class="container-xxl flex-grow-1 container-p-y">
-    <div class="card mb-4">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">Edit Marga</h5>
-            <a href="{{ route('admin.margas.index') }}" class="btn btn-secondary">
-                <i class="ti ti-arrow-left me-sm-1"></i> Kembali
-            </a>
+<div class="container">
+    <h1>Edit Marga: {{ $marga->name }}</h1>
+
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
         </div>
-        <div class="card-body">
-            <form action="{{ route('admin.margas.update', $marga->id) }}" method="POST">
-                @csrf
-                @method('PUT')
-                <div class="row mb-3">
-                    <label class="col-sm-2 col-form-label" for="name">Nama Marga</label>
-                    <div class="col-sm-10">
-                        <input type="text" class="form-control @error('name') is-invalid @enderror" id="name" name="name" value="{{ old('name', $marga->name) }}" placeholder="Contoh: Nainggolan" />
-                        @error('name')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-                <div class="row mb-3">
-                    <label class="col-sm-2 col-form-label" for="description">Deskripsi</label>
-                    <div class="col-sm-10">
-                        <textarea class="form-control @error('description') is-invalid @enderror" id="description" name="description" rows="4" placeholder="Deskripsi atau sejarah singkat tentang marga">{{ old('description', $marga->description) }}</textarea>
-                        @error('description')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                </div>
-                <div class="row justify-content-end">
-                    <div class="col-sm-10">
-                        <button type="submit" class="btn btn-primary">Perbarui</button>
-                    </div>
-                </div>
-            </form>
+    @endif
+
+    <form action="{{ route("admin.margas.update", $marga) }}" method="POST">
+        @csrf
+        @method("PUT")
+
+        <div class="form-group">
+            <label for="name">Name:</label>
+            <input type="text" name="name" id="name" class="form-control" value="{{ old("name", $marga->name) }}" required>
         </div>
-    </div>
+
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea name="description" id="description" class="form-control">{{ old("description", $marga->description) }}</textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="origin_story_link">Origin Story Link (URL):</label>
+            <input type="url" name="origin_story_link" id="origin_story_link" class="form-control" value="{{ old("origin_story_link", $marga->origin_story_link) }}">
+        </div>
+
+        <button type="submit" class="btn btn-success">Update Marga</button>
+        <a href="{{ route("admin.margas.index") }}" class="btn">Cancel</a>
+    </form>
 </div>
 @endsection
 
